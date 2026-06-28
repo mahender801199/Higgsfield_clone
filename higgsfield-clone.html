@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Higgsfield — Generate Cinematic AI Videos</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --bg-soft: #0e0e14;
+      --panel: #121420;
+      --panel-2: #161927;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #f5f6fa;
+      --muted: #9aa0b4;
+      --muted-2: #6b7184;
+      --purple: #9333ea;
+      --purple-bright: #a855f7;
+      --blue: #3b82f6;
+      --blue-bright: #60a5fa;
+      --glass: rgba(20, 22, 35, 0.55);
+      --radius: 18px;
+      --shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.8);
+      --maxw: 1200px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient background glows */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(60rem 40rem at 80% -10%, rgba(147, 51, 234, 0.18), transparent 60%),
+        radial-gradient(50rem 40rem at 0% 20%, rgba(59, 130, 246, 0.14), transparent 55%),
+        radial-gradient(40rem 30rem at 50% 120%, rgba(147, 51, 234, 0.1), transparent 60%);
+      pointer-events: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: 100%;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .accent-text {
+      background: linear-gradient(100deg, var(--purple-bright), var(--blue-bright));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ============ Buttons ============ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 11px 20px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: linear-gradient(100deg, var(--purple), var(--blue));
+      color: #fff;
+      box-shadow: 0 10px 30px -8px rgba(147, 51, 234, 0.6);
+    }
+    .btn-primary:hover { box-shadow: 0 16px 40px -8px rgba(147, 51, 234, 0.75); }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      border-color: var(--border-strong);
+      backdrop-filter: blur(8px);
+    }
+    .btn-outline:hover { border-color: var(--purple-bright); background: rgba(147, 51, 234, 0.08); }
+    .btn-ghost { background: transparent; color: var(--muted); }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-lg { padding: 15px 28px; font-size: 1rem; }
+    .btn-block { width: 100%; }
+
+    /* ============ Navbar ============ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 12, 0.6);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 6px 20px -6px rgba(147, 51, 234, 0.7);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0; bottom: -6px;
+      width: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple-bright), var(--blue-bright));
+      transition: width 0.25s ease;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* Mobile menu */
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px 24px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 12, 0.92);
+      backdrop-filter: blur(18px);
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { padding: 10px 0; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .mobile-menu .mobile-cta { display: flex; gap: 12px; margin-top: 12px; }
+
+    /* ============ Section scaffolding ============ */
+    section { padding: 96px 0; position: relative; }
+    .section-head { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--purple-bright);
+      background: rgba(147, 51, 234, 0.1);
+      border: 1px solid rgba(147, 51, 234, 0.25);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    h2.section-title { font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+    .section-sub { color: var(--muted); margin-top: 16px; font-size: 1.05rem; }
+
+    /* ============ Hero ============ */
+    .hero { padding-top: 80px; padding-bottom: 80px; text-align: center; }
+    .hero h1 {
+      font-size: clamp(2.6rem, 6.5vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.04;
+      margin-bottom: 22px;
+    }
+    .hero p.lead {
+      max-width: 660px;
+      margin: 0 auto 34px;
+      color: var(--muted);
+      font-size: 1.18rem;
+    }
+    .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 64px; }
+    .hero-trust { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; color: var(--muted-2); font-size: 0.85rem; margin-bottom: 70px; }
+    .hero-trust span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero-trust i { color: var(--purple-bright); }
+
+    /* Video thumbnail grid */
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .thumb {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      isolation: isolate;
+    }
+    .thumb .anim-bg {
+      position: absolute;
+      inset: 0;
+      background-size: 300% 300%;
+      animation: shimmerMove 7s ease infinite;
+      z-index: -1;
+    }
+    .thumb-1 .anim-bg { background-image: linear-gradient(130deg, #1e3a8a, #3b82f6, #0ea5e9, #1e3a8a); }
+    .thumb-2 .anim-bg { background-image: linear-gradient(130deg, #4c1d95, #9333ea, #db2777, #4c1d95); }
+    .thumb-3 .anim-bg { background-image: linear-gradient(130deg, #7c2d12, #ea580c, #f59e0b, #7c2d12); }
+    .thumb-4 .anim-bg { background-image: linear-gradient(130deg, #064e3b, #10b981, #0ea5e9, #064e3b); }
+    @keyframes shimmerMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .thumb::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 55%);
+    }
+    .thumb .play {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: grid; place-items: center;
+      color: #fff; font-size: 1.1rem;
+      z-index: 2;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .thumb:hover .play { transform: translate(-50%, -50%) scale(1.12); background: rgba(147, 51, 234, 0.55); }
+    .thumb .label {
+      position: absolute;
+      bottom: 14px; left: 14px;
+      z-index: 2;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .thumb .badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      z-index: 2;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    /* ============ Glass card ============ */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* ============ Features ============ */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .feature-card {
+      padding: 30px 26px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+    .feature-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: -60%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.6s ease;
+    }
+    .feature-card:hover { transform: translateY(-6px); border-color: var(--border-strong); }
+    .feature-card:hover::before { left: 130%; }
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(147,51,234,0.25), rgba(59,130,246,0.25));
+      border: 1px solid var(--border-strong);
+    }
+    .feature-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { color: var(--muted); font-size: 0.95rem; }
+
+    /* ============ Dashboard mockup ============ */
+    .dashboard-wrap { padding: 14px; }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 76px 1fr 290px;
+      gap: 14px;
+      height: 600px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .dash-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
+
+    /* sidebar */
+    .dash-sidebar { display: flex; flex-direction: column; align-items: center; padding: 18px 0; gap: 10px; }
+    .dash-sidebar .side-logo {
+      width: 40px; height: 40px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      display: grid; place-items: center; color:#fff; margin-bottom: 14px;
+    }
+    .tool-btn {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .tool-btn:hover { color: var(--text); background: var(--panel-2); }
+    .tool-btn.active {
+      color: #fff;
+      background: rgba(147, 51, 234, 0.18);
+      border-color: rgba(147, 51, 234, 0.45);
+    }
+    .tool-btn .tip {
+      position: absolute; left: 56px; top: 50%; transform: translateY(-50%);
+      background: #000; color:#fff; font-size: 0.72rem; padding: 4px 9px; border-radius: 7px;
+      white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; border: 1px solid var(--border);
+      z-index: 5;
+    }
+    .tool-btn:hover .tip { opacity: 1; }
+    .dash-sidebar .spacer { flex: 1; }
+
+    /* canvas */
+    .dash-canvas { display: flex; flex-direction: column; padding: 16px; }
+    .canvas-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .canvas-toolbar .seg { display: flex; gap: 6px; background: var(--panel-2); padding: 5px; border-radius: 10px; border: 1px solid var(--border); }
+    .seg button {
+      border: none; background: transparent; color: var(--muted); font-size: 0.82rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 7px; cursor: pointer; font-family: inherit; transition: all 0.2s ease;
+    }
+    .seg button.active { background: linear-gradient(100deg, var(--purple), var(--blue)); color:#fff; }
+    .canvas-toolbar .res { color: var(--muted-2); font-size: 0.8rem; }
+    .stage {
+      flex: 1;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      display: grid; place-items: center;
+      background: #050507;
+    }
+    .stage .stage-bg {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(125deg, #4c1d95, #9333ea, #3b82f6, #0ea5e9, #4c1d95);
+      background-size: 300% 300%;
+      animation: shimmerMove 9s ease infinite;
+      opacity: 0.5;
+      transition: opacity 0.4s ease;
+    }
+    .stage .stage-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .stage .stage-content { position: relative; z-index: 2; text-align: center; padding: 20px; }
+    .stage .stage-content .big-play {
+      width: 66px; height: 66px; border-radius: 50%;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+      display: grid; place-items: center; margin: 0 auto 14px; font-size: 1.3rem; color:#fff;
+      backdrop-filter: blur(6px); cursor: pointer; transition: transform 0.2s ease;
+    }
+    .stage .big-play:hover { transform: scale(1.1); }
+    .stage .stage-status { color: rgba(255,255,255,0.85); font-size: 0.92rem; font-weight: 500; }
+    .stage .stage-prompt-echo { color: rgba(255,255,255,0.65); font-size: 0.82rem; margin-top: 6px; max-width: 400px; }
+
+    .stage.is-generating .stage-bg { opacity: 0.95; animation-duration: 2.2s; }
+    .spinner {
+      width: 46px; height: 46px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.25); border-top-color: #fff;
+      animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* prompt bar */
+    .prompt-bar {
+      margin-top: 14px;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      padding: 10px 10px 10px 16px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .prompt-bar:focus-within { border-color: var(--purple-bright); box-shadow: 0 0 0 3px rgba(147,51,234,0.18); }
+    .prompt-bar i.lead-ic { color: var(--purple-bright); }
+    .prompt-bar input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 0.95rem; font-family: inherit;
+    }
+    .prompt-bar input::placeholder { color: var(--muted-2); }
+    .prompt-bar .mini { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 38px; height: 38px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+    .prompt-bar .mini:hover { color:#fff; border-color: var(--border-strong); }
+
+    /* right panel */
+    .dash-controls { padding: 18px; overflow-y: auto; }
+    .ctrl-group { margin-bottom: 26px; }
+    .ctrl-group > h4 {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted-2); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .slider-row { margin-bottom: 16px; }
+    .slider-row .slabel { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
+    .slider-row .slabel .val { color: var(--purple-bright); font-weight: 600; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px;
+      background: var(--panel); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple-bright), var(--blue-bright));
+      border: 2px solid #fff; box-shadow: 0 2px 8px rgba(147,51,234,0.6);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff;
+      background: var(--purple-bright); box-shadow: 0 2px 8px rgba(147,51,234,0.6);
+    }
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .preset-btn {
+      padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--muted); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.2s ease; display:flex; align-items:center; gap:7px; justify-content:center;
+    }
+    .preset-btn:hover { color:#fff; border-color: var(--border-strong); }
+    .preset-btn.active {
+      color:#fff; border-color: rgba(147,51,234,0.5);
+      background: rgba(147,51,234,0.18);
+    }
+    .duration-pills { display:flex; gap:8px; }
+    .pill {
+      flex:1; text-align:center; padding:8px; border-radius:10px; border:1px solid var(--border);
+      background: var(--panel); color: var(--muted); font-size:0.8rem; font-weight:600; cursor:pointer; transition: all 0.2s ease;
+    }
+    .pill.active { color:#fff; background: rgba(59,130,246,0.18); border-color: rgba(59,130,246,0.5); }
+    .generate-btn { margin-top: 6px; }
+    .credits-note { text-align:center; color: var(--muted-2); font-size: 0.78rem; margin-top: 10px; }
+
+    /* ============ Pricing ============ */
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+    .price-card { padding: 34px 28px; display: flex; flex-direction: column; position: relative; transition: transform 0.25s ease, border-color 0.25s ease; }
+    .price-card:hover { transform: translateY(-6px); }
+    .price-card.featured { border-color: rgba(147,51,234,0.5); box-shadow: 0 24px 70px -24px rgba(147,51,234,0.55); }
+    .price-card.featured::after {
+      content: "Most Popular";
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(100deg, var(--purple), var(--blue));
+      color:#fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+      padding: 6px 16px; border-radius: 999px;
+    }
+    .price-card .plan-name { font-size: 1.05rem; font-weight: 700; }
+    .price-card .plan-desc { color: var(--muted); font-size: 0.88rem; margin-top: 4px; min-height: 40px; }
+    .price-card .price { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.02em; margin: 18px 0 2px; }
+    .price-card .price span { font-size: 1rem; color: var(--muted); font-weight: 500; }
+    .price-card ul { list-style: none; margin: 22px 0 28px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .price-card li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.92rem; color: var(--muted); }
+    .price-card li i { color: var(--purple-bright); margin-top: 4px; font-size: 0.8rem; }
+
+    /* ============ Footer ============ */
+    footer { border-top: 1px solid var(--border); padding: 64px 0 36px; background: var(--bg-soft); }
+    .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+    .footer-brand p { color: var(--muted); font-size: 0.92rem; margin: 16px 0 20px; max-width: 280px; }
+    .socials { display: flex; gap: 12px; }
+    .socials a {
+      width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+      border: 1px solid var(--border); color: var(--muted); transition: all 0.2s ease;
+    }
+    .socials a:hover { color:#fff; border-color: var(--purple-bright); background: rgba(147,51,234,0.12); transform: translateY(-3px); }
+    .footer-col h5 { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+    .footer-col a { color: var(--muted); font-size: 0.9rem; transition: color 0.2s ease; }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+      padding-top: 28px; border-top: 1px solid var(--border); color: var(--muted-2); font-size: 0.85rem;
+    }
+
+    /* ============ Scroll reveal ============ */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ============ Responsive ============ */
+    @media (max-width: 980px) {
+      .nav-links, .nav-actions { display: none; }
+      .hamburger { display: block; }
+      .thumb-grid { grid-template-columns: repeat(2, 1fr); }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; }
+      .dashboard { grid-template-columns: 64px 1fr; height: auto; }
+      .dash-controls { grid-column: 1 / -1; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      section { padding: 64px 0; }
+      .thumb-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; align-items: stretch; }
+      .dashboard { grid-template-columns: 1fr; }
+      .dash-sidebar { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .dash-sidebar .spacer { display: none; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== NAVBAR ===================== -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark"><i class="fa-solid fa-bolt"></i></span>
+        Higgsfield
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#create">Create</a></li>
+          <li><a href="#explore">Explore</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#blog">Blog</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn btn-ghost">Sign In</button>
+        <button class="btn btn-primary">Get Started</button>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#create">Create</a>
+      <a href="#explore">Explore</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#blog">Blog</a>
+      <div class="mobile-cta">
+        <button class="btn btn-outline btn-block">Sign In</button>
+        <button class="btn btn-primary btn-block">Get Started</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" id="create">
+    <div class="container">
+      <span class="eyebrow reveal"><i class="fa-solid fa-sparkles"></i> Cinematic AI video, end to end</span>
+      <h1 class="reveal">Generate <span class="accent-text">Cinematic AI Videos</span></h1>
+      <p class="lead reveal">
+        Turn a single line of text or a still image into film-grade motion. Direct every shot with
+        real camera moves, blockbuster VFX, and consistent characters — no crew, no cameras, no limits.
+      </p>
+      <div class="hero-cta reveal">
+        <button class="btn btn-primary btn-lg"><i class="fa-solid fa-wand-magic-sparkles"></i> Start Creating Free</button>
+        <button class="btn btn-outline btn-lg"><i class="fa-solid fa-circle-play"></i> Watch Demo</button>
+      </div>
+      <div class="hero-trust reveal">
+        <span><i class="fa-solid fa-bolt"></i> Renders in seconds</span>
+        <span><i class="fa-solid fa-film"></i> Up to 4K cinematic output</span>
+        <span><i class="fa-solid fa-users"></i> Trusted by 2M+ creators</span>
+      </div>
+
+      <div class="thumb-grid reveal">
+        <div class="thumb thumb-1">
+          <div class="anim-bg"></div>
+          <span class="badge">Camera</span>
+          <div class="play"><i class="fa-solid fa-play"></i></div>
+          <span class="label">Earth Zoom</span>
+        </div>
+        <div class="thumb thumb-2">
+          <div class="anim-bg"></div>
+          <span class="badge">Motion</span>
+          <div class="play"><i class="fa-solid fa-play"></i></div>
+          <span class="label">Dolly Shot</span>
+        </div>
+        <div class="thumb thumb-3">
+          <div class="anim-bg"></div>
+          <span class="badge">VFX</span>
+          <div class="play"><i class="fa-solid fa-play"></i></div>
+          <span class="label">VFX Explosion</span>
+        </div>
+        <div class="thumb thumb-4">
+          <div class="anim-bg"></div>
+          <span class="badge">FPV</span>
+          <div class="play"><i class="fa-solid fa-play"></i></div>
+          <span class="label">Crane Flythrough</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FEATURES ===================== -->
+  <section id="explore">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow"><i class="fa-solid fa-layer-group"></i> One studio, every shot</span>
+        <h2 class="section-title">Everything you need to direct</h2>
+        <p class="section-sub">A complete generative pipeline — from the first prompt to the final cut.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">🎬</div>
+          <h3>Text-to-Video</h3>
+          <p>Describe a scene in plain language and watch it become a fully-rendered cinematic clip with natural motion and lighting.</p>
+        </div>
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">🖼️</div>
+          <h3>Image-to-Video</h3>
+          <p>Bring any still photo or artwork to life. Animate portraits, products, and landscapes with believable depth and parallax.</p>
+        </div>
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">🎥</div>
+          <h3>Camera Controls</h3>
+          <p>Direct true camera language — dolly, crane, orbit, and FPV drone moves — for shots that feel shot on a real set.</p>
+        </div>
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">✨</div>
+          <h3>Visual Effects</h3>
+          <p>Trigger blockbuster VFX in one click: explosions, disintegration, morphs, and elemental transitions baked right in.</p>
+        </div>
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">👤</div>
+          <h3>Soul ID</h3>
+          <p>Lock in a character once and keep them perfectly consistent across every scene, angle, and story you generate.</p>
+        </div>
+        <div class="glass feature-card reveal">
+          <div class="feature-icon">🎤</div>
+          <h3>Lipsync Studio</h3>
+          <p>Sync any voiceover or script to your character's lips with frame-accurate, multi-language lip movement.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DASHBOARD MOCKUP ===================== -->
+  <section>
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow"><i class="fa-solid fa-table-columns"></i> The creation studio</span>
+        <h2 class="section-title">Your director's chair</h2>
+        <p class="section-sub">Prompt, tune the camera, pick a look, and generate — all from one canvas.</p>
+      </div>
+
+      <div class="glass dashboard-wrap reveal">
+        <div class="dashboard">
+          <!-- Sidebar -->
+          <div class="dash-panel dash-sidebar">
+            <div class="side-logo"><i class="fa-solid fa-bolt"></i></div>
+            <button class="tool-btn active"><i class="fa-solid fa-clapperboard"></i><span class="tip">Create</span></button>
+            <button class="tool-btn"><i class="fa-solid fa-images"></i><span class="tip">Gallery</span></button>
+            <button class="tool-btn"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="tip">Effects</span></button>
+            <button class="tool-btn"><i class="fa-solid fa-user-astronaut"></i><span class="tip">Soul ID</span></button>
+            <div class="spacer"></div>
+            <button class="tool-btn"><i class="fa-solid fa-gear"></i><span class="tip">Settings</span></button>
+          </div>
+
+          <!-- Canvas -->
+          <div class="dash-panel dash-canvas">
+            <div class="canvas-toolbar">
+              <div class="seg" id="modeSeg">
+                <button class="active">Text → Video</button>
+                <button>Image → Video</button>
+              </div>
+              <span class="res"><i class="fa-solid fa-expand"></i> 1920 × 1080 · 24fps</span>
+            </div>
+            <div class="stage" id="stage">
+              <div class="stage-bg"></div>
+              <div class="stage-grid"></div>
+              <div class="stage-content" id="stageContent">
+                <div class="big-play" id="bigPlay"><i class="fa-solid fa-play"></i></div>
+                <div class="stage-status">Preview ready — describe your shot below</div>
+                <div class="stage-prompt-echo" id="promptEcho"></div>
+              </div>
+            </div>
+            <div class="prompt-bar">
+              <i class="fa-solid fa-wand-magic-sparkles lead-ic"></i>
+              <input
+                type="text"
+                id="promptInput"
+                placeholder="A lone astronaut walking across a neon-lit Martian canyon, slow dolly in…"
+              />
+              <button class="mini" id="diceBtn" title="Surprise me"><i class="fa-solid fa-dice"></i></button>
+              <button class="mini" id="micBtn" title="Voice prompt"><i class="fa-solid fa-microphone"></i></button>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="dash-panel dash-controls">
+            <div class="ctrl-group">
+              <h4><i class="fa-solid fa-video"></i> Camera Controls</h4>
+              <div class="slider-row">
+                <div class="slabel"><span>Speed</span><span class="val" id="speedVal">50%</span></div>
+                <input type="range" min="0" max="100" value="50" id="speedSlider" />
+              </div>
+              <div class="slider-row">
+                <div class="slabel"><span>Intensity</span><span class="val" id="intensityVal">65%</span></div>
+                <input type="range" min="0" max="100" value="65" id="intensitySlider" />
+              </div>
+              <div class="slider-row">
+                <div class="slabel"><span>Motion</span><span class="val" id="motionLabel">Dolly In</span></div>
+                <div class="preset-grid" id="motionGrid">
+                  <button class="preset-btn active"><i class="fa-solid fa-arrow-right-to-bracket"></i> Dolly</button>
+                  <button class="preset-btn"><i class="fa-solid fa-arrows-up-down"></i> Crane</button>
+                  <button class="preset-btn"><i class="fa-solid fa-rotate"></i> Orbit</button>
+                  <button class="preset-btn"><i class="fa-solid fa-helicopter"></i> FPV</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="ctrl-group">
+              <h4><i class="fa-solid fa-palette"></i> Style Presets</h4>
+              <div class="preset-grid" id="styleGrid">
+                <button class="preset-btn active"><i class="fa-solid fa-film"></i> Cinematic</button>
+                <button class="preset-btn"><i class="fa-solid fa-clock-rotate-left"></i> Vintage</button>
+                <button class="preset-btn"><i class="fa-solid fa-bolt"></i> Neon</button>
+                <button class="preset-btn"><i class="fa-solid fa-mountain-sun"></i> Realistic</button>
+              </div>
+            </div>
+
+            <div class="ctrl-group">
+              <h4><i class="fa-solid fa-clock"></i> Duration</h4>
+              <div class="duration-pills" id="durationPills">
+                <div class="pill active">5s</div>
+                <div class="pill">10s</div>
+                <div class="pill">15s</div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block generate-btn" id="generateBtn">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+            </button>
+            <p class="credits-note">Uses 12 credits · ~8s render</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PRICING ===================== -->
+  <section id="pricing">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow"><i class="fa-solid fa-tags"></i> Simple, scalable pricing</span>
+        <h2 class="section-title">Plans for every creator</h2>
+        <p class="section-sub">Start free. Upgrade when your stories need more horsepower.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="glass price-card reveal">
+          <div class="plan-name">Free</div>
+          <div class="plan-desc">For exploring what generative video can do.</div>
+          <div class="price">$0<span>/mo</span></div>
+          <ul>
+            <li><i class="fa-solid fa-check"></i> 50 credits per month</li>
+            <li><i class="fa-solid fa-check"></i> 720p exports with watermark</li>
+            <li><i class="fa-solid fa-check"></i> Text-to-video & image-to-video</li>
+            <li><i class="fa-solid fa-check"></i> 3 basic camera moves</li>
+            <li><i class="fa-solid fa-check"></i> Community gallery access</li>
+          </ul>
+          <button class="btn btn-outline btn-block">Get Started</button>
+        </div>
+
+        <div class="glass price-card featured reveal">
+          <div class="plan-name">Pro</div>
+          <div class="plan-desc">For creators shipping content every week.</div>
+          <div class="price">$19<span>/mo</span></div>
+          <ul>
+            <li><i class="fa-solid fa-check"></i> 1,500 credits per month</li>
+            <li><i class="fa-solid fa-check"></i> 1080p exports, no watermark</li>
+            <li><i class="fa-solid fa-check"></i> Full camera & VFX library</li>
+            <li><i class="fa-solid fa-check"></i> Soul ID character consistency</li>
+            <li><i class="fa-solid fa-check"></i> Lipsync Studio included</li>
+            <li><i class="fa-solid fa-check"></i> Priority render queue</li>
+          </ul>
+          <button class="btn btn-primary btn-block">Upgrade to Pro</button>
+        </div>
+
+        <div class="glass price-card reveal">
+          <div class="plan-name">Studio</div>
+          <div class="plan-desc">For teams and agencies at production scale.</div>
+          <div class="price">$49<span>/mo</span></div>
+          <ul>
+            <li><i class="fa-solid fa-check"></i> 5,000 credits per month</li>
+            <li><i class="fa-solid fa-check"></i> 4K cinematic exports</li>
+            <li><i class="fa-solid fa-check"></i> Everything in Pro</li>
+            <li><i class="fa-solid fa-check"></i> Team workspaces & seats</li>
+            <li><i class="fa-solid fa-check"></i> Commercial license & API access</li>
+            <li><i class="fa-solid fa-check"></i> Dedicated support</li>
+          </ul>
+          <button class="btn btn-outline btn-block">Start Studio</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer id="blog">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <span class="logo-mark"><i class="fa-solid fa-bolt"></i></span>
+            Higgsfield
+          </a>
+          <p>The end-to-end studio for cinematic AI video. Direct any shot, from idea to final cut.</p>
+          <div class="socials">
+            <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h5>Product</h5>
+          <ul>
+            <li><a href="#">Text-to-Video</a></li>
+            <li><a href="#">Image-to-Video</a></li>
+            <li><a href="#">Camera Controls</a></li>
+            <li><a href="#">Soul ID</a></li>
+            <li><a href="#">Lipsync Studio</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Company</h5>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Press</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Resources</h5>
+          <ul>
+            <li><a href="#">Tutorials</a></li>
+            <li><a href="#">Prompt Guide</a></li>
+            <li><a href="#">Community</a></li>
+            <li><a href="#">API Docs</a></li>
+            <li><a href="#">Status</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Higgsfield, Inc. All rights reserved.</span>
+        <span style="display:flex; gap:22px; flex-wrap:wrap;">
+          <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Hamburger menu =====
+    const hamburger = document.getElementById("hamburger");
+    const mobileMenu = document.getElementById("mobileMenu");
+    hamburger.addEventListener("click", () => {
+      mobileMenu.classList.toggle("open");
+      const icon = hamburger.querySelector("i");
+      icon.className = mobileMenu.classList.contains("open")
+        ? "fa-solid fa-xmark"
+        : "fa-solid fa-bars";
+    });
+    mobileMenu.querySelectorAll("a").forEach((a) =>
+      a.addEventListener("click", () => {
+        mobileMenu.classList.remove("open");
+        hamburger.querySelector("i").className = "fa-solid fa-bars";
+      })
+    );
+
+    // ===== Scroll reveal (Intersection Observer) =====
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            // small stagger for grouped elements
+            setTimeout(() => entry.target.classList.add("visible"), (i % 6) * 80);
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+    // ===== Dashboard: single-select button groups =====
+    function singleSelect(container, onChange) {
+      const btns = container.querySelectorAll("button, .pill");
+      btns.forEach((btn) =>
+        btn.addEventListener("click", () => {
+          btns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          if (onChange) onChange(btn.textContent.trim());
+        })
+      );
+    }
+    singleSelect(document.getElementById("modeSeg"));
+    singleSelect(document.getElementById("styleGrid"));
+    singleSelect(document.getElementById("durationPills"));
+    singleSelect(document.getElementById("motionGrid"), (label) => {
+      document.getElementById("motionLabel").textContent = label;
+    });
+
+    // ===== Sidebar tools =====
+    document.querySelectorAll(".dash-sidebar .tool-btn").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".dash-sidebar .tool-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      })
+    );
+
+    // ===== Sliders =====
+    const speedSlider = document.getElementById("speedSlider");
+    const intensitySlider = document.getElementById("intensitySlider");
+    const speedVal = document.getElementById("speedVal");
+    const intensityVal = document.getElementById("intensityVal");
+    speedSlider.addEventListener("input", (e) => (speedVal.textContent = e.target.value + "%"));
+    intensitySlider.addEventListener("input", (e) => (intensityVal.textContent = e.target.value + "%"));
+
+    // ===== Prompt input + Generate flow =====
+    const promptInput = document.getElementById("promptInput");
+    const generateBtn = document.getElementById("generateBtn");
+    const stage = document.getElementById("stage");
+    const stageContent = document.getElementById("stageContent");
+    const promptEcho = document.getElementById("promptEcho");
+
+    const samplePrompts = [
+      "A lone astronaut walking across a neon-lit Martian canyon, slow dolly in",
+      "Hyperlapse through a rain-soaked Tokyo street at night, reflections everywhere",
+      "A glass sculpture of a phoenix disintegrating into golden embers, macro shot",
+      "Aerial FPV drone diving through a misty mountain waterfall at sunrise",
+      "Vintage film of a vintage car drifting through autumn leaves, 35mm grain",
+    ];
+
+    document.getElementById("diceBtn").addEventListener("click", () => {
+      const p = samplePrompts[Math.floor(Math.random() * samplePrompts.length)];
+      promptInput.value = p;
+      promptInput.focus();
+    });
+    document.getElementById("micBtn").addEventListener("click", () => {
+      promptInput.focus();
+      promptInput.placeholder = "Listening… (demo)";
+      setTimeout(() => {
+        promptInput.placeholder = "A lone astronaut walking across a neon-lit Martian canyon, slow dolly in…";
+      }, 1600);
+    });
+
+    function runGenerate() {
+      const text = promptInput.value.trim() || "Cinematic establishing shot, golden hour";
+      stage.classList.add("is-generating");
+      stageContent.innerHTML =
+        '<div class="spinner"></div><div class="stage-status">Generating your shot…</div>' +
+        '<div class="stage-prompt-echo">“' + text + '”</div>';
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rendering…';
+
+      setTimeout(() => {
+        stage.classList.remove("is-generating");
+        stageContent.innerHTML =
+          '<div class="big-play"><i class="fa-solid fa-play"></i></div>' +
+          '<div class="stage-status">Shot ready — press play to preview</div>' +
+          '<div class="stage-prompt-echo">“' + text + '”</div>';
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate';
+      }, 2600);
+    }
+
+    generateBtn.addEventListener("click", runGenerate);
+    promptInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runGenerate();
+    });
+
+    // Echo prompt live into the stage subtitle while typing
+    promptInput.addEventListener("input", () => {
+      if (!stage.classList.contains("is-generating")) {
+        promptEcho.textContent = promptInput.value ? "“" + promptInput.value + "”" : "";
+      }
+    });
+  </script>
+</body>
+</html>
